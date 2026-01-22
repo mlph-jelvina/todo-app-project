@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import TodoInput from "./TodoInput.vue";
+import { ref, watch } from "vue";
 import type { Todo } from "../types/todo";
 
 const props = defineProps<{
   todo: Todo;
-  isEditing: boolean;
-  editingText: string;
 }>();
 
 const emit = defineEmits<{
   (e: "toggle", id: string): void;
   (e: "delete", id: string): void;
-  (e: "startEdit", todo: Todo): void;
-  (e: "update:editingText", value: string): void;
-  (e: "saveEdit", payload: { id: string; text: string }): void;
-  (e: "cancelEdit"): void;
+  (e: "edit", payload: { id: string; text: string }): void;
 }>();
+
+// Local state (Component Basics)
+const isEditing = ref(false);
+const editText = ref(props.todo.text);
+
+watch(
+  () => props.todo.text,
+  (newText) => {
+    if (!isEditing.value) editText.value = newText;
+  },
+);
 
 function toggle() {
   emit("toggle", props.todo.id);
@@ -26,29 +32,38 @@ function del() {
 }
 
 function startEdit() {
-  emit("startEdit", props.todo);
+  isEditing.value = true;
+  editText.value = props.todo.text;
 }
 
-function save(text: string) {
-  emit("saveEdit", { id: props.todo.id, text });
+function cancelEdit() {
+  isEditing.value = false;
+  editText.value = props.todo.text;
+}
+
+function saveEdit() {
+  const trimmed = editText.value.trim();
+  if (!trimmed) return;
+  emit("edit", { id: props.todo.id, text: trimmed });
+  isEditing.value = false;
 }
 </script>
 
 <template>
-  <li class="todo-item" :class="{ 'todo-item--done': todo.completed }">
-    <div v-if="!isEditing" class="todo-item__row">
-      <label class="todo-item__left">
-        <input
-          class="todo-item__checkbox"
-          type="checkbox"
-          :checked="todo.completed"
-          @change="toggle"
-        />
-        <span class="todo-item__text">{{ todo.text }}</span>
+  <li class="item" :class="{ done: todo.completed }">
+    <div v-if="!isEditing" class="row">
+      <label class="left">
+        <input type="checkbox" :checked="todo.completed" @change="toggle" />
+        <span
+          class="text"
+          :style="{ textDecoration: todo.completed ? 'line-through' : 'none' }"
+        >
+          {{ todo.text }}
+        </span>
       </label>
 
-      <div class="todo-item__actions">
-        <button class="btn btn--ghost" type="button" @click="startEdit">
+      <div class="actions">
+        <button class="btn btn--secondary" type="button" @click="startEdit">
           Edit
         </button>
         <button class="btn btn--danger" type="button" @click="del">
@@ -57,79 +72,99 @@ function save(text: string) {
       </div>
     </div>
 
-    <div v-else class="todo-item__edit">
-      <TodoInput
-        :model-value="editingText"
-        submit-label="Save"
-        :show-cancel="true"
-        :auto-focus="true"
-        placeholder="Edit task..."
-        @update:model-value="emit('update:editingText', $event)"
-        @submit="save"
-        @cancel="emit('cancelEdit')"
-      />
-    </div>
+    <form v-else class="row" @submit.prevent="saveEdit">
+      <input v-model="editText" class="input" />
+      <button class="btn" type="submit">Save</button>
+      <button class="btn btn--secondary" type="button" @click="cancelEdit">
+        Cancel
+      </button>
+    </form>
   </li>
 </template>
 
 <style scoped>
-.todo-item {
+.item {
+  list-style: none;
   border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--panel) 92%, transparent);
-  border-radius: 14px;
-  padding: 0.85rem;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
 }
 
-.todo-item__row {
+.row {
   display: flex;
-  gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
-.todo-item__left {
+.left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
+  flex: 1;
   min-width: 0;
-  cursor: pointer;
 }
 
-.todo-item__checkbox {
-  width: 18px;
-  height: 18px;
-}
-
-.todo-item__text {
-  text-align: left;
+.text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.todo-item--done .todo-item__text {
-  opacity: 0.7;
-  text-decoration: line-through;
-}
-
-.todo-item__actions {
+.actions {
   display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
-.todo-item__edit {
-  width: 100%;
+.input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
 }
 
-@media (max-width: 520px) {
-  .todo-item__row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .todo-item__actions {
-    justify-content: flex-end;
-  }
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.btn {
+  padding: 8px 10px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+}
+
+.btn:hover {
+  background: var(--primary-2);
+  border-color: var(--primary-2);
+}
+
+.btn--secondary {
+  background: white;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn--secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn--danger {
+  border-color: var(--danger);
+  background: var(--danger);
+}
+
+.btn--danger:hover {
+  filter: brightness(0.95);
+}
+
+.done {
+  opacity: 0.85;
 }
 </style>
 

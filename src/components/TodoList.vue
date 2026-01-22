@@ -4,57 +4,41 @@ import type { Todo } from "../types/todo";
 
 defineProps<{
   todos: Todo[];
-  editingId: string | null;
-  editingText: string;
 }>();
 
 const emit = defineEmits<{
   (e: "toggle", id: string): void;
   (e: "delete", id: string): void;
-  (e: "startEdit", todo: Todo): void;
-  (e: "update:editingText", value: string): void;
-  (e: "saveEdit", payload: { id: string; text: string }): void;
-  (e: "cancelEdit"): void;
+  (e: "edit", payload: { id: string; text: string }): void;
 }>();
 </script>
 
 <template>
-  <ul v-if="todos.length > 0" class="todo-list">
+  <ul v-if="todos.length" class="list">
     <TodoItem
       v-for="t in todos"
       :key="t.id"
       :todo="t"
-      :is-editing="editingId === t.id"
-      :editing-text="editingText"
       @toggle="emit('toggle', $event)"
       @delete="emit('delete', $event)"
-      @startEdit="emit('startEdit', $event)"
-      @update:editingText="emit('update:editingText', $event)"
-      @saveEdit="emit('saveEdit', $event)"
-      @cancelEdit="emit('cancelEdit')"
+      @edit="emit('edit', $event)"
     />
   </ul>
 
-  <div v-else class="todo-empty">
-    No tasks yet. Add one above.
-  </div>
+  <p v-else class="empty">No tasks yet.</p>
 </template>
 
 <style scoped>
-.todo-list {
-  list-style: none;
-  padding: 0;
+.list {
   margin: 0;
+  padding: 0;
   display: grid;
-  gap: 0.75rem;
+  gap: 10px;
 }
 
-.todo-empty {
-  padding: 1rem;
-  border: 1px dashed var(--border);
-  border-radius: 14px;
-  color: var(--muted);
-  text-align: center;
+.empty {
+  margin: 0;
+  color: #6b7280;
 }
 </style>
 

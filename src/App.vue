@@ -4,258 +4,171 @@ import TodoInput from "./components/TodoInput.vue";
 import TodoList from "./components/TodoList.vue";
 import type { Todo, TodoFilter } from "./types/todo";
 
-const STORAGE_KEY = "todos-v1";
-
 const todos = ref<Todo[]>([]);
 const filter = ref<TodoFilter>("all");
 
-const newText = ref("");
-const editingId = ref<string | null>(null);
-const editingText = ref("");
-
-const remainingCount = computed(
-  () => todos.value.filter((t) => !t.completed).length,
-);
-const completedCount = computed(
-  () => todos.value.filter((t) => t.completed).length,
-);
-
 const filteredTodos = computed(() => {
-  const list = todos.value;
-  if (filter.value === "active") return list.filter((t) => !t.completed);
-  if (filter.value === "completed") return list.filter((t) => t.completed);
-  return list;
+  if (filter.value === "active") return todos.value.filter((t) => !t.completed);
+  if (filter.value === "completed") return todos.value.filter((t) => t.completed);
+  return todos.value;
 });
 
-function uid() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+const remaining = computed(() => todos.value.filter((t) => !t.completed).length);
+const completed = computed(() => todos.value.filter((t) => t.completed).length);
+
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function addTodo(text: string) {
-  const now = Date.now();
   todos.value.unshift({
-    id: uid(),
+    id: makeId(),
     text,
     completed: false,
-    createdAt: now,
-    updatedAt: now,
   });
-  newText.value = "";
 }
 
 function toggleTodo(id: string) {
   const t = todos.value.find((x) => x.id === id);
   if (!t) return;
   t.completed = !t.completed;
-  t.updatedAt = Date.now();
 }
 
 function deleteTodo(id: string) {
   todos.value = todos.value.filter((t) => t.id !== id);
-  if (editingId.value === id) cancelEdit();
 }
 
-function startEdit(todo: Todo) {
-  editingId.value = todo.id;
-  editingText.value = todo.text;
-}
-
-function cancelEdit() {
-  editingId.value = null;
-  editingText.value = "";
-}
-
-function saveEdit(payload: { id: string; text: string }) {
+function editTodo(payload: { id: string; text: string }) {
   const t = todos.value.find((x) => x.id === payload.id);
   if (!t) return;
-  const trimmed = payload.text.trim();
-  if (!trimmed) return;
-  t.text = trimmed;
-  t.updatedAt = Date.now();
-  cancelEdit();
+  t.text = payload.text;
 }
 
 function clearCompleted() {
   todos.value = todos.value.filter((t) => !t.completed);
-  cancelEdit();
-}
-
-function isTodoShape(v: unknown): v is Todo {
-  if (!v || typeof v !== "object") return false;
-  const o = v as Record<string, unknown>;
-  return (
-    typeof o.id === "string" &&
-    typeof o.text === "string" &&
-    typeof o.completed === "boolean" &&
-    typeof o.createdAt === "number" &&
-    typeof o.updatedAt === "number"
-  );
-}
-
-function loadFromStorage(): Todo[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isTodoShape);
-  } catch {
-    return [];
-  }
 }
 
 onMounted(() => {
-  todos.value = loadFromStorage();
+  const raw = localStorage.getItem("todos");
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw) as Todo[];
+    if (Array.isArray(parsed)) todos.value = parsed;
+  } catch {
+
+  }
 });
 
 watch(
   todos,
-  (v) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+  () => {
+    localStorage.setItem("todos", JSON.stringify(todos.value));
   },
   { deep: true },
 );
 </script>
 
 <template>
-  <main class="app">
-    <header class="app__header">
-      <div>
-        <h1 class="app__title">Todo</h1>
-        <p class="app__subtitle">
-          {{ remainingCount }} remaining · {{ completedCount }} completed
-        </p>
-      </div>
-    </header>
+  <div class="card">
+    <h1>Todo App</h1>
 
-    <section class="panel">
-      <TodoInput
-        v-model="newText"
-        placeholder="Add a new task…"
-        submit-label="Add"
-        :auto-focus="true"
-        @submit="addTodo"
-      />
+    <TodoInput @add="addTodo" />
 
-      <div class="toolbar">
-        <div class="filters" role="tablist" aria-label="Filters">
-          <button
-            class="seg"
-            type="button"
-            :aria-pressed="filter === 'all'"
-            :class="{ 'seg--active': filter === 'all' }"
-            @click="filter = 'all'"
-          >
-            All ({{ todos.length }})
-          </button>
-          <button
-            class="seg"
-            type="button"
-            :aria-pressed="filter === 'active'"
-            :class="{ 'seg--active': filter === 'active' }"
-            @click="filter = 'active'"
-          >
-            Active ({{ remainingCount }})
-          </button>
-          <button
-            class="seg"
-            type="button"
-            :aria-pressed="filter === 'completed'"
-            :class="{ 'seg--active': filter === 'completed' }"
-            @click="filter = 'completed'"
-          >
-            Completed ({{ completedCount }})
-          </button>
-        </div>
-
+    <div class="toolbar">
+      <div class="filters">
+        <button :class="{ active: filter === 'all' }" @click="filter = 'all'">
+          All ({{ todos.length }})
+        </button>
         <button
-          class="btn btn--ghost"
-          type="button"
-          :disabled="completedCount === 0"
-          @click="clearCompleted"
+          :class="{ active: filter === 'active' }"
+          @click="filter = 'active'"
         >
-          Clear completed
+          Active ({{ remaining }})
+        </button>
+        <button
+          :class="{ active: filter === 'completed' }"
+          @click="filter = 'completed'"
+        >
+          Completed ({{ completed }})
         </button>
       </div>
 
-      <TodoList
-        :todos="filteredTodos"
-        :editing-id="editingId"
-        :editing-text="editingText"
-        @toggle="toggleTodo"
-        @delete="deleteTodo"
-        @startEdit="startEdit"
-        @update:editingText="editingText = $event"
-        @saveEdit="saveEdit"
-        @cancelEdit="cancelEdit"
-      />
-    </section>
-  </main>
+      <button :disabled="completed === 0" @click="clearCompleted">
+        Clear completed
+      </button>
+    </div>
+
+    <TodoList
+      :todos="filteredTodos"
+      @toggle="toggleTodo"
+      @delete="deleteTodo"
+      @edit="editTodo"
+    />
+  </div>
 </template>
 
 <style scoped>
-.app {
-  width: min(820px, 100%);
-  margin: 0 auto;
-  padding: 2.25rem 1rem 3rem;
-}
-
-.app__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1rem;
-}
-
-.app__title {
-  margin: 0;
-  font-size: 2.1rem;
-  letter-spacing: -0.02em;
-}
-
-.app__subtitle {
-  margin: 0.25rem 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.panel {
-  background: var(--panel);
+.card {
+  width: 100%;
+  max-width: 720px;
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 1rem;
+  border-radius: 16px;
+  padding: 20px;
   display: grid;
-  gap: 0.9rem;
+  gap: 14px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.02em;
 }
 
 .toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .filters {
-  display: inline-flex;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters button,
+.toolbar > button {
+  padding: 8px 10px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--panel) 92%, transparent);
-  padding: 0.25rem;
-  gap: 0.25rem;
-}
-
-.seg {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.seg--active {
-  background: color-mix(in oklab, var(--brand) 18%, transparent);
+  background: #f8fafc;
   color: var(--text);
 }
+
+.filters button.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.filters button:hover,
+.toolbar > button:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.filters button.active:hover {
+  background: var(--primary-2);
+  border-color: var(--primary-2);
+}
+
+.toolbar > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>
+

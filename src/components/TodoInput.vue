@@ -1,131 +1,77 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
-
-const props = withDefaults(
-  defineProps<{
-    modelValue: string;
-    placeholder?: string;
-    submitLabel?: string;
-    showCancel?: boolean;
-    autoFocus?: boolean;
-  }>(),
-  {
-    placeholder: "What do you need to do?",
-    submitLabel: "Add",
-    showCancel: false,
-    autoFocus: false,
-  },
-);
+import { computed, onMounted, ref } from "vue";
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: string): void;
-  (e: "submit", value: string): void;
-  (e: "cancel"): void;
+  (e: "add", text: string): void;
 }>();
 
-const value = computed({
-  get: () => props.modelValue,
-  set: (v: string) => emit("update:modelValue", v),
-});
-
+const text = ref("");
 const inputEl = ref<HTMLInputElement | null>(null);
 
-async function focusIfNeeded() {
-  if (!props.autoFocus) return;
-  await nextTick();
-  inputEl.value?.focus();
-}
+const isEmpty = computed(() => text.value.trim().length === 0);
 
 onMounted(() => {
-  void focusIfNeeded();
+  inputEl.value?.focus();
 });
 
-watch(
-  () => props.autoFocus,
-  () => {
-    void focusIfNeeded();
-  },
-);
-
-const isEmpty = computed(() => value.value.trim().length === 0);
-
-function handleSubmit() {
-  const trimmed = value.value.trim();
+function submit() {
+  const trimmed = text.value.trim();
   if (!trimmed) return;
-  emit("submit", trimmed);
-}
-
-function handleCancel() {
-  emit("cancel");
+  emit("add", trimmed);
+  text.value = "";
+  inputEl.value?.focus();
 }
 </script>
 
 <template>
-  <form class="todo-input" @submit.prevent="handleSubmit">
+  <form class="row" @submit.prevent="submit">
     <input
       ref="inputEl"
-      v-model="value"
-      class="todo-input__field"
-      type="text"
-      :placeholder="placeholder"
+      v-model="text"
+      class="input"
+      placeholder="Add a new task..."
       autocomplete="off"
     />
-
-    <div class="todo-input__actions">
-      <button class="btn btn--primary" type="submit" :disabled="isEmpty">
-        {{ submitLabel }}
-      </button>
-      <button
-        v-if="showCancel"
-        class="btn btn--ghost"
-        type="button"
-        @click="handleCancel"
-      >
-        Cancel
-      </button>
-    </div>
+    <button class="btn" type="submit" :disabled="isEmpty">Add</button>
   </form>
 </template>
 
 <style scoped>
-.todo-input {
+.row {
   display: flex;
-  gap: 0.75rem;
-  align-items: center;
+  gap: 8px;
 }
 
-.todo-input__field {
+.input {
   flex: 1;
-  min-width: 0;
-  padding: 0.75rem 0.9rem;
-  border-radius: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
+  border-radius: 8px;
+  background: white;
   outline: none;
 }
 
-.todo-input__field:focus {
-  border-color: color-mix(in oklab, var(--brand) 55%, var(--border));
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 20%, transparent);
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
 }
 
-.todo-input__actions {
-  display: flex;
-  gap: 0.5rem;
+.btn {
+  padding: 10px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
 }
 
-@media (max-width: 520px) {
-  .todo-input {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .todo-input__actions {
-    justify-content: stretch;
-  }
-  .todo-input__actions :deep(.btn) {
-    width: 100%;
-  }
+.btn:hover {
+  background: var(--primary-2);
+  border-color: var(--primary-2);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
 
