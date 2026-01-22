@@ -1,5 +1,21 @@
-# Vue 3 + TypeScript + Vite
+# Vue 3 To-Do App
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A simple To-Do application built with **Vue 3** and **Vite**, featuring a **full CRUD system** (Create, Read, Update, Delete) and data persistence using **localStorage**.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Features
+
+- Add new tasks
+- Edit existing tasks
+- Mark tasks as completed
+- Delete tasks
+- Filter tasks: All / Active / Completed
+- Data persists between sessions using localStorage
+- Built with Vue 3
+
+## Project Setup
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/mlph-jelvina/todo-app-project.git
+2. npm install
+3. npm run dev
