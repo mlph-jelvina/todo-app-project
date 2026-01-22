@@ -25,7 +25,9 @@ const emit = defineEmits<{
     />
   </ul>
 
-  <p v-else class="empty">No tasks yet.</p>
+  <div v-else class="empty">
+    <p class="empty__text">No tasks yet.</p>
+  </div>
 </template>
 
 <style scoped>
@@ -37,8 +39,23 @@ const emit = defineEmits<{
 }
 
 .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface) 50%, transparent);
+  text-align: center;
+}
+
+.empty__text {
   margin: 0;
-  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
 }
 </style>
 
