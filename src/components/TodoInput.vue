@@ -6,12 +6,12 @@ const emit = defineEmits<{
 }>();
 
 const text = ref("");
-const inputEl = ref<HTMLInputElement | null>(null);
+const inputRef = ref<HTMLInputElement | null>(null);
 
 const isEmpty = computed(() => text.value.trim().length === 0);
 
 onMounted(() => {
-  inputEl.value?.focus();
+  inputRef.value?.focus();
 });
 
 function submit() {
@@ -19,14 +19,14 @@ function submit() {
   if (!trimmed) return;
   emit("add", trimmed);
   text.value = "";
-  inputEl.value?.focus();
+  inputRef.value?.focus();
 }
 </script>
 
 <template>
   <form class="row" @submit.prevent="submit">
     <input
-      ref="inputEl"
+      ref="inputRef"
       v-model="text"
       class="input"
       placeholder="Add a new task..."
@@ -47,7 +47,8 @@ function submit() {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: white;
+  background: var(--surface);
+  color: var(--text);
   outline: none;
 }
 

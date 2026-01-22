@@ -12,7 +12,6 @@ const emit = defineEmits<{
   (e: "edit", payload: { id: string; text: string }): void;
 }>();
 
-// Local state (Component Basics)
 const isEditing = ref(false);
 const editText = ref(props.todo.text);
 
@@ -53,7 +52,12 @@ function saveEdit() {
   <li class="item" :class="{ done: todo.completed }">
     <div v-if="!isEditing" class="row">
       <label class="left">
-        <input type="checkbox" :checked="todo.completed" @change="toggle" />
+        <input
+          class="checkbox"
+          type="checkbox"
+          :checked="todo.completed"
+          @change="toggle"
+        />
         <span
           class="text"
           :style="{ textDecoration: todo.completed ? 'line-through' : 'none' }"
@@ -86,9 +90,16 @@ function saveEdit() {
 .item {
   list-style: none;
   border: 1px solid var(--border);
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 12px;
+  transition: box-shadow 120ms ease, transform 120ms ease,
+    border-color 120ms ease;
+}
+
+.item:hover {
+  border-color: color-mix(in oklab, var(--primary) 20%, var(--border));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .row {
@@ -104,6 +115,44 @@ function saveEdit() {
   gap: 10px;
   flex: 1;
   min-width: 0;
+}
+
+.checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: inline-grid;
+  place-content: center;
+  flex: 0 0 auto;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+}
+
+.checkbox:hover {
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+}
+
+.checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.checkbox:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.checkbox:checked::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+  margin-top: -1px;
 }
 
 .text {
@@ -122,6 +171,8 @@ function saveEdit() {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
   outline: none;
 }
 
@@ -144,14 +195,14 @@ function saveEdit() {
 }
 
 .btn--secondary {
-  background: white;
+  background: transparent;
   color: var(--text);
   border-color: var(--border);
 }
 
 .btn--secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: color-mix(in oklab, var(--surface) 88%, var(--primary));
+  border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
 }
 
 .btn--danger {
@@ -165,6 +216,16 @@ function saveEdit() {
 
 .done {
   opacity: 0.85;
+}
+
+@media (max-width: 520px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions {
+    justify-content: flex-end;
+  }
 }
 </style>
 

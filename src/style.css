@@ -1,13 +1,14 @@
 :root {
-  --bg: #f5f7ff;
-  --bg2: #eef2ff;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --primary: #4f46e5;
-  --primary-2: #4338ca;
-  --danger: #ef4444;
+  --bg: #0b1020;
+  --bg2: #151a31;
+  --card: #0f1730;
+  --surface: #101a36;
+  --text: #e9eefc;
+  --muted: #aab6da;
+  --border: rgba(255, 255, 255, 0.12);
+  --primary: #7c5cff;
+  --primary-2: #6a49ff;
+  --danger: #ff4d6d;
 
   font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
   line-height: 1.5;
@@ -24,7 +25,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: radial-gradient(900px 450px at 15% 0%, var(--bg2), transparent 60%),
-    radial-gradient(900px 450px at 90% 0%, #e0f2fe, transparent 55%),
+    radial-gradient(
+      900px 450px at 90% 0%,
+      color-mix(in oklab, var(--primary) 22%, transparent),
+      transparent 55%
+    ),
     var(--bg);
 }
 

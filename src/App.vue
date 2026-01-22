@@ -117,7 +117,7 @@ watch(
   padding: 20px;
   display: grid;
   gap: 14px;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 
 h1 {
@@ -145,7 +145,7 @@ h1 {
   padding: 8px 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: #f8fafc;
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -157,8 +157,8 @@ h1 {
 
 .filters button:hover,
 .toolbar > button:hover {
-  border-color: #cbd5e1;
-  background: #ffffff;
+  border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  background: color-mix(in oklab, var(--surface) 88%, var(--primary));
 }
 
 .filters button.active:hover {

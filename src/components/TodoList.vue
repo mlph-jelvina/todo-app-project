@@ -38,7 +38,7 @@ const emit = defineEmits<{
 
 .empty {
   margin: 0;
-  color: #6b7280;
+  color: var(--muted);
 }
 </style>
 
